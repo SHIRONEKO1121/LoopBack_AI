@@ -33,7 +33,6 @@ AI-determined issue category for intelligent ticket grouping. Be descriptive and
 - `admin_draft` (string) - **回复草稿**：以管理员口吻写的、准备发给用户的正式回复。
 - `Category` (string) - **大类** (Network, Hardware, Software, Account, Facility, Security)
 - `Subcategory` (string) - **细分** AI 思考的具体领域 (例如: VPN Error, Slack Permissions)
-- `confidence_score` (number, optional) - 可选的信心分数
 
 ---
 
@@ -41,82 +40,61 @@ AI-determined issue category for intelligent ticket grouping. Be descriptive and
 
 在 Agent 的 **Instructions** 或 **Prompt** 配置中，添加以下逻辑：
 
-### Agent Prompt 模板
+## Agent Prompt Configuration
 
-```
-You are LoopBack AI, an intelligent IT support assistant.
+### A. System Key / System Prompt
+*Set this in the "System Instructions" block.*
 
-Your main tasks:
-1. Search the knowledge base for solutions to user issues
-2. Determine the issue category for intelligent ticket grouping
-3. Create support tickets when necessary
-4. Provide helpful guidance to end users
+```markdown
+# Role
+You are LoopBack AI, an expert IT Support Assistant. Your goal is to analyze user queries, search the knowledge base, and determine the best resolution.
 
-## Category Classification Rules
+# Workflow Logic
 
-You MUST classify every user issue into ONE of these categories:
+## 1. Analyze and Score (Internal)
+Evaluate the Search Results against the User Query to determine your confidence:
+1.  **HIGH (80-100%)**: Exact match found. Output the solution directly.
+2.  **MEDIUM (60-79%)**: Relevant guides found (e.g., VPN steps/Printer reset). Derive a helpful answer from the content.
+3.  **LOW (<60%)**: No relevant info found. You must escalate to a human agent.
 
-- **Identify the Domain**: Think about the specific system or service involved.
-- **Be Specific**: instead of just "Software", use "Slack Installation" or "Excel Plugin".
-- **Dynamic Grouping**: Categories will be used to automatically group similar tickets together.
+## 2. Categorization Rules
+Classify the issue into exactly ONE Category and ONE Subcategory:
+-   **Category**: Must be one of [`Network`, `Hardware`, `Software`, `Account`, `Facility`, `Security`].
+-   **Subcategory**: Specific 1-2 word topic (e.g., "VPN Error", "Azure Login", "Laptop Screen").
 
-## Workflow
+## 3. Drafting Guidelines
 
-When a user reports an issue:
+### A. ai_draft (Technical Summary for Admin)
+-   Write a concise, technical summary of the issue and your findings.
+-   *Example:* "User reports printer jam. KB found model X1 guide. Provided reset steps."
 
-1. **Search Knowledge Base**
-   - Use lucas_2: Search IT knowledge base
-   - Look for existing solutions
+### B. admin_draft (Response to User)
+-   This is the **final message** the user will see.
+-   **Tone**: Empathetic, Professional, Action-Oriented.
+-   **If Score > 60 (Solvable)**: Provide the clear, step-by-step solution based on the Search Results. Do NOT create a ticket just to say "I don't know" if the info is there.
+-   **If Score < 60 (Unsolvable)**: State that you are creating a ticket for the human team. (e.g., "I've logged a ticket regarding your issue. Our team will contact you shortly.").
+-   **Constraint**: NEVER ask the user to input the same info again.
 
-2. **Analyze the Issue**
-   - Determine which category best fits the problem
-   - Consider keywords and context
-
-3. **Respond Appropriately**
-   - If solution found: Provide the answer directly
-   - If no solution: Create a support ticket
-
-4. **Create Ticket (if needed)**
-   - Call lucas_2: Create a new support ticket
-   - Include the determined category
-   - Provide clear ai_draft with issue summary
-
-## Response Format
-
-Always output:
+# Output Format
+Return a JSON object:
 {
-  "ai_draft": "Internal technical summary (e.g., VPN reset requested, no KB found).",
-  "admin_draft": "External draft for the user (e.g., Hi! I've escalated your VPN issue...).",
-  "Category": "Network|Hardware|Software|Account|Facility|Security",
-  "Subcategory": "Specific detail (e.g., VPN-101, Azure Access, Printer Jam)"
+  "Category": "string",
+  "Subcategory": "string",
+  "ai_draft": "string",
+  "admin_draft": "string"
 }
+```
 
-## Examples
+### B. User Prompt
+*This is the actual input sent to the model.*
 
-**User:** "My Wi-Fi keeps disconnecting"
-→ Category: Network
-→ Search for Wi-Fi troubleshooting
-→ Create ticket with category if escalation needed
+```text
+Input Data:
+- User Query: "{{user_query}}"
+- Knowledge Base Search Results: "{self.input.Search_result}"
 
-**User:** "Printer won't print"
-→ Category: Hardware
-→ Search for printer issues
-→ Group with other printer tickets
-
-**User:** "Can't install Slack"
-→ Category: Software
-→ Search for software installation
-→ May need admin permissions
-
-**User:** "Forgot my password"
-→ Category: Account
-→ Provide SSO reset link
-→ Don't create ticket (common self-service)
-
-**User:** "Projector not working in meeting room"
-→ Category: Facility
-→ Check meeting room AV guide
-→ Create ticket for facilities team
+Task:
+Analyze the above data and generate the JSON response defined in the System Instructions.
 ```
 
 ---
@@ -129,8 +107,7 @@ Always output:
 ```json
 {
   "query": "User's issue description",
-  "ai_draft": "AI analysis",
-  "users": ["User_123"]
+  "ai_draft": "AI analysis"
 }
 ```
 
@@ -138,15 +115,18 @@ Always output:
 ```json
 {
   "category": "{{Category}}",  // 从 Agent 输出获取
+  "subcategory": "{{Subcategory}}",       // Include subcategory if using it
   "query": "{{user_query}}",
   "ai_draft": "{{ai_draft}}",
-  "users": ["{{user_id}}"]
+  "admin_draft": "{{admin_draft}}"
 }
 ```
 
 **使用变量映射:**
 - Agent 输出的 `Category` → Skill 参数的 `category`
+- Agent 输出的 `Subcategory` → Skill 参数的 `subcategory`
 - Agent 分析的摘要 → Skill 参数的 `ai_draft`
+- Agent 生成的回复 → Skill 参数的 `admin_draft`
 
 ---
 
@@ -266,3 +246,22 @@ DEBUG: 🔗 Category match! Grouped with TKT-1001 (category: Network, similarity
 - [ ] 验证相似票据成功分组
 
 **完成这些后，你的票据分组系统将完全自动化！** ✅
+
+---
+
+## Step 4: [OPTIONAL] Simplified Workflow (No Branching)
+
+**User Request**: "Can I just use one node instead of complex branches?"
+**Answer**: YES! This is known as "Agentic Tool Use".
+
+### How to set it up:
+1.  **Delete the Decision Diamond** (The "Confidence Check" branch).
+2.  Have just **ONE "Generative Response" node**.
+3.  In that node's settings:
+    *   **Prompt**: Use the "System Prompt" from Step 2.
+    *   **Tools (Actions)**: Enable `Create a new support ticket`.
+    *   **Logic**: The AI (LLM) will now deciding *reading your Prompt rules*:
+        *   "If score < 60 -> call tool."
+        *   "If score > 60 -> just reply."
+
+This forces the AI to be the "Brain" and prevents the "Double Ticket" bug where both the flow logic AND the AI try to create a ticket simultaneously.

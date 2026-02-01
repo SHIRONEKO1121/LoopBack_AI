@@ -188,10 +188,17 @@ async def create_ticket(ticket: Ticket):
                     print(f"DEBUG: 🔗 Found similar ticket {existing_ticket['id']} ({similarity:.0%} match)")
                     break
     
-    # 3. Robust ID Generation (Timestamp + Offset)
-    ticket_count = len(db)
-    timestamp_suffix = int(time.time()) % 10000
-    ticket.id = f"TKT-{1100 + ticket_count}-{timestamp_suffix}"
+    # 3. Robust ID Generation (Max + 1)
+    max_id = 1000
+    for t in db:
+        try:
+            tid = int(t["id"].replace("TKT-", ""))
+            if tid > max_id:
+                max_id = tid
+        except:
+            pass
+    
+    ticket.id = f"TKT-{max_id + 1}"
     
     if group_id:
         print(f"DEBUG: 🔗 Linking new ticket {ticket.id} to Group {group_id}")
@@ -863,6 +870,23 @@ async def ask_ai(req: AskRequest):
         import traceback
         traceback.print_exc()
         return {"response": "System error. Please check server logs."}
+
+@app.get("/knowledge-base")
+async def get_knowledge_base():
+    """Returns the content of the Knowledge Base CSV."""
+    import csv 
+    # Use KB_DIR defined earlier
+    csv_path = KB_DIR / "Workplace_IT_Support_Database.csv"
+    
+    if not os.path.exists(csv_path):
+        return []
+    
+    data = []
+    with open(csv_path, 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            data.append(row)
+    return data
 
 if __name__ == "__main__":
     import uvicorn

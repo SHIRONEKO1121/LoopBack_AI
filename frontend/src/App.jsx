@@ -3,6 +3,7 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Send, Trash2, Zap, Search, Bell, HelpCircle } from 'lucide-react';
 import './App.css';
+import DatabaseViewer from './DatabaseViewer';
 
 const API_URL = 'http://localhost:8000';
 
@@ -13,6 +14,7 @@ function App() {
   const [subcategoryFilter, setSubcategoryFilter] = useState('All');
   const [showBroadcastAll, setShowBroadcastAll] = useState(false);
   const [broadcastAllText, setBroadcastAllText] = useState('');
+  const [showDatabase, setShowDatabase] = useState(false);
 
   // Custom UI State
   const [notification, setNotification] = useState(null);
@@ -235,6 +237,9 @@ function App() {
           <div className="admin-grid">
             <div className="admin-header">
               <h1>Human-in-the-Loop <span className="badge-queue">Queue</span></h1>
+              <button className="refresh-btn" onClick={() => setShowDatabase(true)}>
+                <span>🗄️</span> Database
+              </button>
               <button className="refresh-btn" onClick={fetchTickets}>
                 <span>🔄</span> Refresh
               </button>
@@ -643,6 +648,11 @@ function App() {
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showDatabase && (
+          <DatabaseViewer onClose={() => setShowDatabase(false)} />
         )}
       </AnimatePresence>
     </div>

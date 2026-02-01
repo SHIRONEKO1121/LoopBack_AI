@@ -375,7 +375,10 @@
                 "type": "object",
                 "required": [
                     "query",
-                    "ai_draft"
+                    "category",
+                    "subcategory",
+                    "ai_draft",
+                    "admin_draft"
                 ],
                 "properties": {
                     "category": {
@@ -410,16 +413,6 @@
                         "type": "string",
                         "description": "A polished, empathetic draft response addressed to the user",
                         "example": "Hi there! I'm sorry you're having trouble with the Wi-Fi. I've flagged this for our network team..."
-                    },
-                    "users": {
-                        "type": "array",
-                        "description": "List of affected user IDs",
-                        "items": {
-                            "type": "string"
-                        },
-                        "example": [
-                            "User_123"
-                        ]
                     }
                 }
             },

@@ -37,7 +37,14 @@
     ```
 3.  Set up your environment variables:
     *   Create a `.env` file in the root directory.
-    *   dadd your API key: `GOOGLE_API_KEY=your_api_key_here`
+    *   add your API key: `GOOGLE_API_KEY=your_api_key_here`
+    *   If you wish to use Langsmith services, add 
+    `LANGSMITH_TRACING=true`
+    `LANGSMITH_ENDPOINT=https://api.smith.langchain.com`
+    `LANGSMITH_API_KEY=<your-api-key>`
+    `LANGSMITH_PROJECT=<your-project-name>`
+    *   Else, simply add the line `LANGSMITH_TRACING=true`
+
 
 4.  Start the backend server:
     ```bash

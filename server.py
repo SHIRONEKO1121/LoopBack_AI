@@ -9,14 +9,33 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
-import google.generativeai as genai
+from google import genai
+from langsmith import wrappers
+from difflib import SequenceMatcher
 
 load_dotenv()
-
-# --- Configuration ---
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
-if GOOGLE_API_KEY:
-    genai.configure(api_key=GOOGLE_API_KEY)
+LANGSMITH_TRACING = os.getenv('LANGSMITH_TRACING')
+
+if not GOOGLE_API_KEY:
+    print("WARNING: GOOGLE_API_KEY not found in environment variables. Gemini API calls will fail.")
+
+gemini_client = genai.Client()
+
+# Wrap the Gemini client to enable LangSmith tracing
+if LANGSMITH_TRACING:
+    LANGSMITH_ENDPOINT = os.getenv('LANGSMITH_ENDPOINT')
+    LANGSMITH_API_KEY = os.getenv('LANGSMITH_API_KEY')
+    LANGSMITH_PROJECT = os.getenv('LANGSMITH_PROJECT')
+    client = wrappers.wrap_gemini(
+            gemini_client,
+            tracing_extra={
+                "tags": ["gemini", "python"],
+                "metadata": {
+                    "integration": "google-genai",
+                },
+            },
+        )
 
 app = FastAPI(title="LoopBack AI IT Hub API")
 
@@ -141,7 +160,6 @@ def analyze_with_gemini(query: str, mode: str = "ticket") -> Dict[str, Any]:
         return {"confidence": "low", "reasoning": "No API Key", "ticket_metadata": {"title": "Error"}, "solution_draft": "System Error: No API Key."}
 
     try:
-        model = genai.GenerativeModel('gemini-3-flash-preview')
         kb_context = get_kb_context_summary(query)
         
         if mode == "chat":
@@ -178,8 +196,45 @@ Return JSON:
   "solution_draft": "Admin draft..."
 }}"""
             
-        response = model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
-        return json.loads(response.text)
+        # Use the wrapped client to call the new API
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+        )
+
+        # Extract textual content from various possible response shapes
+        content_text = ""
+        try:
+            if hasattr(response, "text") and response.text:
+                content_text = response.text
+            else:
+                gens = getattr(response, "generations", None) or getattr(response, "results", None)
+                if gens and len(gens) > 0:
+                    first = gens[0]
+                    if isinstance(first, dict):
+                        content = first.get("content") or first.get("messages") or first.get("message")
+                        if isinstance(content, list) and len(content) > 0:
+                            c0 = content[0]
+                            content_text = c0.get("text") or c0.get("content") or str(c0)
+                        else:
+                            content_text = first.get("text") or first.get("message") or json.dumps(first)
+                    else:
+                        cont = getattr(first, "content", None)
+                        if isinstance(cont, list) and len(cont) > 0:
+                            c0 = cont[0]
+                            content_text = getattr(c0, "text", None) or getattr(c0, "content", None) or str(c0)
+                        else:
+                            content_text = getattr(first, "text", None) or str(first)
+                else:
+                    content_text = str(response)
+        except Exception:
+            content_text = str(response)
+
+        try:
+            return json.loads(content_text)
+        except Exception:
+            print("Gemini Error: Failed to parse response as JSON. Returning raw content.")
+            return {"confidence": "low", "solution_draft": content_text, "ticket_metadata": {}}
     except Exception as e:
         print(f"Gemini Error: {e}")
         return {"confidence": "low", "solution_draft": "Error. Please try again.", "ticket_metadata": {}}
@@ -304,8 +359,6 @@ async def create_ticket(req: CreateTicketRequest):
         "confidence": conf,
         "solution": draft if conf == "high" else None
     }
-
-from difflib import SequenceMatcher
 
 def kb_entry_exists(new_query: str) -> bool:
     """Checks if a similar query already exists in the KB."""

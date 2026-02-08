@@ -100,6 +100,7 @@ class Response(BaseModel):
     ticket_metadata: TicketMetadata
     solution_draft: str = Field(description="Admin draft solution or Chat response")
     escalation_required: bool = Field(default=False, description="True if escalation is required")
+    is_it_related: bool = Field(default=True, description="True if query is IT Support related (hardware, software, network, account, etc.). False for chit-chat, weather, general knowledge.")
 
 # --- Database Ops ---
 def load_db():
@@ -196,12 +197,14 @@ Context:
 
 User: {query}
 
-Task: Respond directly. If issue requires admin/hardware/account fix or user asks for ticket, set "escalation_required": true. Else false.
+Task: Respond directly. If issue requires admin/hardware/account fix or user asks for ticket, or if the message is a test message, set "escalation_required": true. Else false.
+If the message is a test message,, set escalation_required to false, and tell the user that the system is running well.
 Return JSON:
 {{
   "solution_draft": "Response...",
   "escalation_required": true|false,
   "confidence": "high|medium|low",
+  "is_it_related": true|false,
   "summary": "Standardized, professional issue title (e.g. 'VPN Access Failure' or 'Laptop Screen Replacement Request'). Avoid 'User reports' or 'Customer needs'. Just state the issue.",
   "ticket_metadata": {{
     "title": "Title",
@@ -227,7 +230,8 @@ Return JSON:
     "subcategory": "Subcategory (Max 2 words)"
   }},
   "solution_draft": "Admin draft...",
-  "escalation_required": true
+  "escalation_required": true,
+  "is_it_related": true
 }}"""
             
         # Use the wrapped client to call the new API
@@ -329,6 +333,7 @@ async def analyze_chat(req: ChatRequest):
         "response": ai_result.get("solution_draft"),
         "escalation_required": escalate,
         "confidence": ai_result.get("confidence"),
+        "is_it_related": ai_result.get("is_it_related", True),
         "metadata": ai_result.get("ticket_metadata"),
         "summary": ai_result.get("summary", req.message) # Return summary
     }

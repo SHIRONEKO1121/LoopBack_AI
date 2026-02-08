@@ -486,5 +486,22 @@
                 "time": "18:24"
             }
         ]
+    },
+    {
+        "id": "TKT-1021",
+        "title": "Request for IT support details",
+        "query": "ticket",
+        "category": "Others",
+        "subcategory": "General inquiry",
+        "ai_draft": "I see you've reached out to create a ticket. Could you please provide specific details regarding the issue you are experiencing, such as what equipment is affected, any error messages, and what troubleshooting steps you've already taken?",
+        "status": "Pending",
+        "group_id": "TKT-1021",
+        "history": [
+            {
+                "role": "user",
+                "message": "ticket",
+                "time": "17:07"
+            }
+        ]
     }
 ]

@@ -225,7 +225,10 @@
   padding: 0.25rem 0.75rem;
   border-radius: 4px;
   font-size: 0.85rem;
+  white-space: nowrap;
+  display: inline-block;
 }
+
 
 .sub-tag {
   color: #9ca3af;
@@ -786,14 +789,33 @@ header {
   padding: 12px;
   border-radius: 10px;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.1);
+  background: #10b981;
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: none;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 .btn-cancel:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: #059669;
+  transform: translateY(-2px);
+}
+
+.btn-danger {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  background: #ef4444;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
 }
 
 /* Warning Box in Broadcast Modal */

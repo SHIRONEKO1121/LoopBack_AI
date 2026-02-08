@@ -17,11 +17,14 @@ function UserPortal({ onBack }) {
 
     useEffect(scrollToBottom, [messages]);
 
-    const createTicket = async (currentMessages) => {
+    const createTicket = async (currentMessages, summary = null) => {
         try {
-            // Use the last user message as the specific ticket query (problem statement)
-            const lastUserMsg = [...currentMessages].reverse().find(m => m.role === 'user');
-            const queryText = lastUserMsg ? lastUserMsg.content : "Support Request";
+            // Use the AI-generated summary if available, otherwise fallback to the last user message
+            let queryText = summary;
+            if (!queryText) {
+                const lastUserMsg = [...currentMessages].reverse().find(m => m.role === 'user');
+                queryText = lastUserMsg ? lastUserMsg.content : "Support Request";
+            }
 
             const res = await axios.post('http://localhost:8000/tickets', {
                 query: queryText,
@@ -59,7 +62,7 @@ function UserPortal({ onBack }) {
 
             // 2. Check for Escalation
             if (res.data.escalation_required) {
-                await createTicket(updatedMessages);
+                await createTicket(updatedMessages, res.data.summary);
             }
 
         } catch (err) {

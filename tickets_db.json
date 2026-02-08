@@ -107,53 +107,6 @@
         "final_answer": "I understand you need to reset your SSO credentials. To resolve this, please navigate to https://sso.acme-corp.com/reset and follow the provided instructions to securely update your password."
     },
     {
-        "id": "TKT-1005",
-        "title": "Network Connectivity Issue - Router Troubleshooting",
-        "query": "I have tried, i guess it is the router's problem",
-        "category": "Network",
-        "subcategory": "Router Issue",
-        "ai_draft": "I understand you're suspecting a router issue. Please try power cycling the device by unplugging the power cable for 30 seconds before plugging it back in. If you are in the office, please let me know your desk location; if you are working remotely, please check if other devices can connect to the same network to isolate the problem.",
-        "status": "Pending",
-        "group_id": "TKT-1005",
-        "history": [
-            {
-                "role": "ai",
-                "message": "Hi! I'm your IT Assistant. How can I help you today?",
-                "time": "01:39"
-            },
-            {
-                "role": "user",
-                "message": "hi",
-                "time": "01:39"
-            },
-            {
-                "role": "ai",
-                "message": "Hello! I am your IT Assistant. How can I help you today? Please let me know if you are experiencing a technical issue or if you have a question about our systems.",
-                "time": "01:39"
-            },
-            {
-                "role": "user",
-                "message": "The wifi is not working",
-                "time": "01:39"
-            },
-            {
-                "role": "ai",
-                "message": "I'm sorry to hear that your Wi-Fi is not working. Please try toggling your Wi-Fi off and then back on, and ensure that Airplane mode is disabled on your device. Also, check if you can see the network name in your list of available networks. If these steps do not resolve the issue, please let me know so I can help you troubleshoot further.",
-                "time": "01:39"
-            },
-            {
-                "role": "user",
-                "message": "I have tried, i guess it is the router's problem",
-                "time": "01:39"
-            },
-            {
-                "role": "ai",
-                "message": "I understand. Since basic troubleshooting hasn't resolved the issue and you suspect there is a hardware problem with the router, I will escalate this to our network infrastructure team for further investigation. To help them locate the specific device, could you please provide your current location or the building number?",
-                "time": "01:39"
-            }
-        ]
-    },
-    {
         "id": "TKT-1006",
         "title": "Computer Power On",
         "query": "How to turn on the computer",
@@ -290,5 +243,248 @@
             }
         ],
         "final_answer": "To turn on the computer, first locate the power button. This button is typically found on the front of the computer tower or the laptop's keyboard area, and it often has a universal power symbol (a circle with a vertical line). Once you've found it, simply press the button. The computer should then begin its startup process."
+    },
+    {
+        "id": "TKT-1008",
+        "title": "Request for Google API Key Access",
+        "query": "User needs access to a Google API key.",
+        "category": "Software",
+        "subcategory": "API Access",
+        "ai_draft": "I understand you need access to a Google API key. Since API keys are sensitive credentials, I need to verify your required access level and project scope. I am escalating this request to the relevant DevOps/Security team now to ensure proper authorization and provisioning, and they will follow up with you directly regarding next steps.",
+        "status": "Resolved",
+        "group_id": "TKT-1008",
+        "history": [
+            {
+                "role": "ai",
+                "message": "Hi! I'm your IT Assistant. How can I help you today?",
+                "time": "12:19"
+            },
+            {
+                "role": "user",
+                "message": "HI",
+                "time": "12:19"
+            },
+            {
+                "role": "ai",
+                "message": "Hello! I am your IT Assistant. How can I assist you with your IT needs today?",
+                "time": "12:19"
+            },
+            {
+                "role": "user",
+                "message": "How can I get my google API key",
+                "time": "12:19"
+            },
+            {
+                "role": "ai",
+                "message": "Access to Google API keys is managed by the Development Operations (DevOps) team for security purposes. I will escalate this request immediately to them, and they will contact you with the necessary steps or to issue the key. Expect a response shortly.",
+                "time": "12:19"
+            }
+        ],
+        "final_answer": "To get your Google Gemini API key, go to Google AI Studio and sign in with your Google account. Click \"Get API key\" in the left sidebar, then select \"Create API key\" to generate a key in a new or existing Google Cloud project. Copy and securely store this key for your applications. "
+    },
+    {
+        "id": "TKT-1009",
+        "title": "Laptop Screen Replacement Request",
+        "query": "Laptop Screen Replacement Request",
+        "category": "Hardware",
+        "subcategory": "Laptop Repair",
+        "ai_draft": "Thank you for reporting the damaged screen. Since this is a physical hardware repair, I need to open a work order with our repair team. Please provide your laptop's Asset Tag/Serial Number and a brief description of how the damage occurred. I will route this request to the local IT hardware team immediately so they can schedule a pickup or coordinate a replacement part installation.",
+        "status": "Resolved",
+        "group_id": "TKT-1009",
+        "history": [
+            {
+                "role": "ai",
+                "message": "Hi! I'm your IT Assistant. How can I help you today?",
+                "time": "17:41"
+            },
+            {
+                "role": "user",
+                "message": "my laptop screen is broken",
+                "time": "17:41"
+            },
+            {
+                "role": "ai",
+                "message": "I am sorry to hear your laptop screen is broken. I will immediately create a high-priority ticket with our hardware team for a replacement or repair. They will contact you shortly to arrange a physical inspection or device swap.",
+                "time": "17:41"
+            }
+        ],
+        "final_answer": "Thank you for reporting the damaged screen. Since this is a physical hardware repair, I need to open a work order with our repair team. Please provide your laptop's Asset Tag/Serial Number and a brief description of how the damage occurred. I will route this request to the local IT hardware team immediately so they can schedule a pickup or coordinate a replacement part installation."
+    },
+    {
+        "id": "TKT-1010",
+        "title": "Laptop Screen Replacement Request",
+        "query": "Laptop Screen Replacement Request",
+        "category": "Hardware",
+        "subcategory": "Screen Replacement",
+        "ai_draft": "I understand you need to replace a damaged laptop screen. To officially start the hardware repair process, please submit a ticket through ServiceNow (https://acme.service-now.com) under the Hardware category, selecting 'Repair Request.' Include photos of the damage if possible and confirm your current physical location so we can arrange the logistics for shipping the device to our repair depot or issuing a replacement.",
+        "status": "Resolved",
+        "group_id": "TKT-1010",
+        "history": [
+            {
+                "role": "ai",
+                "message": "Hi! I'm your IT Assistant. How can I help you today?",
+                "time": "18:09"
+            },
+            {
+                "role": "user",
+                "message": "The screen of my laptop is broken",
+                "time": "18:09"
+            },
+            {
+                "role": "ai",
+                "message": "I am sorry to hear that your laptop screen is broken. Since this requires a physical hardware repair or replacement, I need to escalate this issue immediately to our Hardware Support team. I will open a service ticket now and someone will contact you shortly with instructions for repair or replacement.",
+                "time": "18:09"
+            }
+        ],
+        "final_answer": "To officially start the hardware repair process, please submit a ticket through ServiceNow (https://acme.service-now.com) under the Hardware category, selecting Repair Request. Include photos of the damage if possible and confirm your current physical location so we can arrange the logistics for shipping the device to our repair depot or issuing a replacement."
+    },
+    {
+        "id": "TKT-1011",
+        "title": "Laptop Request",
+        "query": "User requests a new or replacement laptop.",
+        "category": "Hardware",
+        "subcategory": "New Device",
+        "ai_draft": "You can request a new or replacement laptop by submitting a ticket through our ServiceNow portal (https://acme.service-now.com). Navigate to the Hardware category and select 'New Device Request'. Please ensure you include a detailed business justification, as this request requires approval from both your manager and the IT department.",
+        "status": "Resolved",
+        "group_id": "TKT-1011",
+        "history": [
+            {
+                "role": "ai",
+                "message": "Hi! I'm your IT Assistant. How can I help you today?",
+                "time": "18:10"
+            },
+            {
+                "role": "user",
+                "message": "I need a new laptop",
+                "time": "18:10"
+            },
+            {
+                "role": "ai",
+                "message": "I understand you need a new laptop. I will open a ticket immediately so that our Asset Management team can review your request. You will receive an email confirmation with the ticket details shortly.",
+                "time": "18:10"
+            }
+        ],
+        "final_answer": "You can request a new or replacement laptop by submitting a ticket through our ServiceNow portal (https://acme.service-now.com). Navigate to the Hardware category and select 'New Device Request'. Please ensure you include a detailed business justification, as this request requires approval from both your manager and the IT department."
+    },
+    {
+        "id": "TKT-1012",
+        "title": "Laptop Battery Drains Quickly",
+        "query": "My laptop battery drains really fast, like in 2 hours.",
+        "category": "Hardware",
+        "subcategory": "Battery Drain",
+        "ai_draft": "I understand your laptop battery is draining very quickly. To help maximize battery life immediately, please try reducing your screen brightness and closing resource-intensive background applications like web browsers or communication tools (e.g., Slack). Additionally, please check your laptop's battery health status. If the reported health is below 80%, please reply to this ticket, and I will initiate a replacement process for the battery.",
+        "status": "Resolved",
+        "group_id": "TKT-1012",
+        "history": [
+            {
+                "role": "user",
+                "message": "My laptop battery drains really fast, like in 2 hours.",
+                "time": "18:23"
+            }
+        ],
+        "final_answer": "I understand your laptop battery is draining very quickly. To help maximize battery life immediately, please try reducing your screen brightness and closing resource-intensive background applications like web browsers or communication tools (e.g., Slack). Additionally, please check your laptop's battery health status. If the reported health is below 80%, please reply to this ticket, and I will initiate a replacement process for the battery."
+    },
+    {
+        "id": "TKT-1013",
+        "title": "Adobe Acrobat Pro installation requested",
+        "query": "I need Adobe Acrobat Pro installed for a project.",
+        "category": "Software",
+        "subcategory": "Installation",
+        "ai_draft": "I have received your request for Adobe Acrobat Pro. I will now initiate the installation process on your machine. I will monitor the deployment and let you know when the application is ready to use.",
+        "status": "Resolved",
+        "group_id": "TKT-1013",
+        "history": [
+            {
+                "role": "user",
+                "message": "I need Adobe Acrobat Pro installed for a project.",
+                "time": "18:23"
+            }
+        ],
+        "final_answer": "I have received your request for Adobe Acrobat Pro. I will now initiate the installation process on your machine. I will monitor the deployment and let you know when the application is ready to use."
+    },
+    {
+        "id": "TKT-1014",
+        "title": "Spotty Wi-Fi connectivity in conference room",
+        "query": "The wifi in the conference room is very spotty.",
+        "category": "Network",
+        "subcategory": "Wi-Fi Performance",
+        "ai_draft": "Thank you for reporting this issue. To help me troubleshoot the connectivity problems, could you please specify which conference room you are currently located in? Also, please confirm if you are connected to the 'ACME-Staff' network. As an initial step, please try disconnecting and reconnecting to the Wi-Fi. If the issue persists after these steps, I will escalate this ticket to our network team to investigate the access point performance in that specific location.",
+        "status": "Pending",
+        "group_id": "TKT-1014",
+        "history": [
+            {
+                "role": "user",
+                "message": "The wifi in the conference room is very spotty.",
+                "time": "18:24"
+            }
+        ]
+    },
+    {
+        "id": "TKT-1015",
+        "title": "Shared Drive Access Failure",
+        "query": "I can't access the shared drive folder for Marketing.",
+        "category": "Network",
+        "subcategory": "Folder Access",
+        "ai_draft": "Hello, I understand you are having trouble accessing the shared Marketing folder. To help me investigate, could you please confirm the exact network path or name of the folder you are attempting to access? I will check your group permissions against the requirements for that drive. If you are working remotely, please ensure you are connected to the company VPN.",
+        "status": "Pending",
+        "group_id": "TKT-1015",
+        "history": [
+            {
+                "role": "user",
+                "message": "I can't access the shared drive folder for Marketing.",
+                "time": "18:24"
+            }
+        ]
+    },
+    {
+        "id": "TKT-1016",
+        "title": "Monitor Flickering Causing Headache",
+        "query": "My monitor is flickering and gives me a headache.",
+        "category": "Hardware",
+        "subcategory": "Display Issue",
+        "ai_draft": "I understand that your monitor is flickering and causing you discomfort. To resolve this quickly, please try the following troubleshooting steps: 1. Ensure the video cable (HDMI/DisplayPort) is securely plugged into both the monitor and the computer. Try swapping the cable if you have a spare. 2. Check your display settings and verify that the refresh rate is set to 60 Hz (or the recommended native rate for your monitor). 3. If the issue persists, please ensure your graphics drivers are fully updated. If none of these steps work, please reply with your monitor model and connection type (e.g., HDMI), and I will arrange a replacement or advanced diagnosis.",
+        "status": "Pending",
+        "group_id": "TKT-1016",
+        "history": [
+            {
+                "role": "user",
+                "message": "My monitor is flickering and gives me a headache.",
+                "time": "18:24"
+            }
+        ]
+    },
+    {
+        "id": "TKT-1017",
+        "title": "Broken Mouse Replacement Request",
+        "query": "How do I request a new mouse? Mine is broken.",
+        "category": "Hardware",
+        "subcategory": "Peripheral Request",
+        "ai_draft": "I understand your mouse is broken and needs replacement. To request a new mouse, please submit a service request via our self-service portal at ServiceNow (https://acme.service-now.com). Navigate to the Hardware category and choose 'New Device Request'. Please specify the required device type (mouse) and the reason for replacement in the request details.",
+        "status": "Pending",
+        "group_id": "TKT-1017",
+        "history": [
+            {
+                "role": "user",
+                "message": "How do I request a new mouse? Mine is broken.",
+                "time": "18:24"
+            }
+        ]
+    },
+    {
+        "id": "TKT-1020",
+        "title": "Support Request",
+        "query": "Can I get access to the new Jira project?",
+        "category": "Others",
+        "subcategory": "General",
+        "ai_draft": "Error. Please try again.",
+        "status": "Pending",
+        "group_id": "TKT-1020",
+        "history": [
+            {
+                "role": "user",
+                "message": "Can I get access to the new Jira project?",
+                "time": "18:24"
+            }
+        ]
     }
 ]

@@ -96,7 +96,8 @@ function App() {
     { name: 'Hardware', icon: '🛠️' },
     { name: 'Software', icon: '💻' },
     { name: 'Account', icon: '👤' },
-    { name: 'Facility', icon: '🏢' }
+    { name: 'Facility', icon: '🏢' },
+    { name: 'Others', icon: '📦' }
   ];
 
   useEffect(() => {
@@ -405,7 +406,7 @@ function App() {
                               #{ticket.subcategory}
                             </span>
                           )}
-                          <span className="escalated-badge">Escalated</span>
+
                           <span className="ticket-id">{ticket.id}</span>
                         </div>
                         {/* NEW: Ticket Title */}
@@ -414,8 +415,8 @@ function App() {
                         </h3>
                         {/* Extracted Dialogue (Query) */}
                         <div className="ticket-query-box" style={{ background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '8px', marginBottom: '10px' }}>
-                          <label style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>USER DIALOGUE:</label>
-                          <p className="ticket-query" style={{ fontStyle: 'italic', color: '#ddd' }}>"{ticket.query}"</p>
+                          <label style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>SUMMARY:</label>
+                          <p className="ticket-query" style={{ fontStyle: 'italic', color: '#ddd' }}>{ticket.query}</p>
                         </div>
                       </div>
                       <div className="ticket-body">
@@ -538,7 +539,7 @@ function App() {
             >
               <h3>⚠️ Confirm Deletion</h3>
               <p>Are you sure you want to delete this ticket?</p>
-              <p className="ticket-preview">"{confirmDelete.ticketQuery}"</p>
+              <p className="ticket-preview">{confirmDelete.ticketQuery}</p>
               <div className="modal-actions">
                 <button onClick={deleteTicket} className="btn-danger">Delete</button>
                 <button onClick={() => setConfirmDelete(null)} className="btn-cancel">Cancel</button>
@@ -654,7 +655,7 @@ function App() {
               exit={{ scale: 0.9, opacity: 0 }}
             >
               <h3>❓ Ask User for Clarification</h3>
-              <p className="ticket-preview">"{showAskModal.query}"</p>
+              <p className="ticket-preview">{showAskModal.query}</p>
 
               <label className="modal-label">AI-Suggested Question:</label>
               <textarea

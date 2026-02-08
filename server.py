@@ -2,18 +2,18 @@ import os
 import json
 import csv
 import time
+import datetime
+import uuid
 import requests
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 from google import genai
 from langsmith import wrappers
 from difflib import SequenceMatcher
-from google import genai
-from pydantic import BaseModel, Field
 
 load_dotenv()
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
@@ -22,7 +22,7 @@ LANGSMITH_TRACING = os.getenv('LANGSMITH_TRACING')
 if not GOOGLE_API_KEY:
     print("WARNING: GOOGLE_API_KEY not found in environment variables. Gemini API calls will fail.")
 
-gemini_client = genai.Client()
+gemini_client = genai.Client(api_key=GOOGLE_API_KEY)
 
 # Wrap the Gemini client to enable LangSmith tracing
 if LANGSMITH_TRACING:
@@ -38,6 +38,8 @@ if LANGSMITH_TRACING:
                 },
             },
         )
+else:
+    client = gemini_client
 
 app = FastAPI(title="LoopBack AI IT Hub API")
 
@@ -86,6 +88,18 @@ class BroadcastAllRequest(BaseModel):
 
 class AskRequest(BaseModel):
     question: str
+
+class TicketMetadata(BaseModel):
+    title: str = Field(description="Issue Summary")
+    category: str = Field(description="Network|Hardware|Software|Account|Others")
+    subcategory: str = Field(description="Subcategory (Max 2 words)")
+
+class Response(BaseModel):
+    confidence: str = Field(description="high|medium|low")
+    summary: str = Field(description="Concise 1-sentence summary of the issue (e.g. 'User needs a smaller keyboard due to injury')")
+    ticket_metadata: TicketMetadata
+    solution_draft: str = Field(description="Admin draft solution or Chat response")
+    escalation_required: bool = Field(default=False, description="True if escalation is required")
 
 # --- Database Ops ---
 def load_db():
@@ -152,25 +166,25 @@ def is_quality_solution(text: str) -> bool:
     lower = text.lower()
     bridges = ["connecting you", "transferring", "admin to assist", "support team", "logged a ticket", "escalated"]
     if any(b in lower for b in bridges) and len(text) < 60: return False
+    
+    # Exclude transactional/request handling responses
+    transactional_phrases = [
+        "received your request", "initiate the", "monitor the", "let you know", 
+        "approval", "access granted", "deployed", "shipping", "ordered", 
+        "will now", "have been added"
+    ]
+    if any(t in lower for t in transactional_phrases): 
+        print(f"DEBUG: 🚫 Skipped KB update (Transactional response detected)")
+        return False
+
     indicators = ["check", "try", "navigate", "click", "install", "reset", "restart", "verify", "password", "steps:", "how to"]
     return any(i in lower for i in indicators) or len(text) > 40
-
-class TicketMetadata(BaseModel):
-    title: str = Field(description="Title of the chat or ticket.")
-    category: str = Field(description="Category of the chat or ticket (e.g., General).")
-    subcategory: str = Field(description="Subcategory of the chat or ticket (e.g., Chat).")
-
-class Response(BaseModel):
-    solution_draft: str = Field(description="Your generated solution draft.")
-    escalation_required: bool = Field(description="True if escalation is required, false otherwise.")
-    confidence: str = Field(description="Confidence level of the AI's response (high, medium, or low).")
-    ticket_metadata: TicketMetadata
 
 # --- Gemini Logic ---
 def analyze_with_gemini(query: str, mode: str = "ticket") -> Dict[str, Any]:
     """Analyzes query using Gemini with optimized context."""
     if not GOOGLE_API_KEY:
-        return {"confidence": "low", "reasoning": "No API Key", "ticket_metadata": {"title": "Error"}, "solution_draft": "System Error: No API Key."}
+        return {"confidence": "low", "reasoning": "No API Key", "ticket_metadata": {"title": "Error"}, "solution_draft": "System Error: No API Key.", "summary": "Error"}
 
     try:
         kb_context = get_kb_context_summary(query)
@@ -188,7 +202,12 @@ Return JSON:
   "solution_draft": "Response...",
   "escalation_required": true|false,
   "confidence": "high|medium|low",
-  "ticket_metadata": {{ "title": "Chat", "category": "General", "subcategory": "Chat" }}
+  "summary": "Standardized, professional issue title (e.g. 'VPN Access Failure' or 'Laptop Screen Replacement Request'). Avoid 'User reports' or 'Customer needs'. Just state the issue.",
+  "ticket_metadata": {{
+    "title": "Title",
+    "category": "Category",
+    "subcategory": "Subcategory"
+  }}
 }}"""
         else:
             prompt = f"""You are an IT Support AI.
@@ -201,60 +220,64 @@ Task: Analyze, generate metadata, and write Admin solution draft (1st person).
 Return JSON:
 {{
   "confidence": "high|medium|low",
+  "summary": "Standardized, professional issue title (e.g. 'VPN Access Failure'). Avoid 'User reports'. Just state the issue.",
   "ticket_metadata": {{
     "title": "Issue Summary",
     "category": "Network|Hardware|Software|Account|Others",
     "subcategory": "Subcategory (Max 2 words)"
   }},
-  "solution_draft": "Admin draft..."
+  "solution_draft": "Admin draft...",
+  "escalation_required": true
 }}"""
             
         # Use the wrapped client to call the new API
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-flash-latest",
             contents=prompt,
             config={
                 "response_mime_type": "application/json",
-                "response_json_schema": Response.model_json_schema(),
+                "response_schema": Response.model_json_schema(),
             },
         )
 
-        # Extract textual content from various possible response shapes
+        # Extract textual content
         content_text = ""
         try:
             if hasattr(response, "text") and response.text:
                 content_text = response.text
             else:
-                gens = getattr(response, "generations", None) or getattr(response, "results", None)
-                if gens and len(gens) > 0:
-                    first = gens[0]
-                    if isinstance(first, dict):
-                        content = first.get("content") or first.get("messages") or first.get("message")
-                        if isinstance(content, list) and len(content) > 0:
-                            c0 = content[0]
-                            content_text = c0.get("text") or c0.get("content") or str(c0)
-                        else:
-                            content_text = first.get("text") or first.get("message") or json.dumps(first)
-                    else:
-                        cont = getattr(first, "content", None)
-                        if isinstance(cont, list) and len(cont) > 0:
-                            c0 = cont[0]
-                            content_text = getattr(c0, "text", None) or getattr(c0, "content", None) or str(c0)
-                        else:
-                            content_text = getattr(first, "text", None) or str(first)
-                else:
-                    content_text = str(response)
+                content_text = str(response)
         except Exception:
             content_text = str(response)
 
         try:
+            # Clean possible markdown
+            content_text = content_text.strip()
+            if content_text.startswith("```json"):
+                content_text = content_text.split("\n", 1)[1].rsplit("\n", 1)[0]
+            elif content_text.startswith("```"):
+                content_text = content_text.split("\n", 1)[1].rsplit("\n", 1)[0]
+                
             return json.loads(content_text)
         except Exception:
             print("Gemini Error: Failed to parse response as JSON. Returning raw content.")
-            return {"confidence": "low", "solution_draft": content_text, "ticket_metadata": {}}
+            return {"confidence": "low", "solution_draft": content_text, "ticket_metadata": {}, "summary": query}
+
     except Exception as e:
-        print(f"Gemini Error: {e}")
-        return {"confidence": "low", "solution_draft": "Error. Please try again.", "ticket_metadata": {}}
+        error_str = str(e)
+        print(f"Gemini Error: {error_str}")
+        
+        if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str or "quota" in error_str.lower():
+            msg = "⚠️ AI Service Busy: quota exhausted. Please try again in a few minutes."
+        else:
+            msg = f"System Error: {error_str}"
+            
+        return {
+            "confidence": "low", 
+            "solution_draft": msg, 
+            "ticket_metadata": {"title": "Error", "category": "Others", "subcategory": "System Error"}, 
+            "summary": "System Error"
+        }
 
 # --- Endpoints ---
 @app.get("/tickets")
@@ -296,19 +319,28 @@ async def analyze_chat(req: ChatRequest):
     
     ai_result = analyze_with_gemini(full_prompt, mode="chat")
     
+    # Check for keywords to force escalation logic if needed
+    escalate = ai_result.get("escalation_required", False)
+    if not escalate:
+        if "ticket" in req.message.lower() or "admin" in req.message.lower() or "escalate" in req.message.lower():
+             escalate = True
+    
     return {
         "response": ai_result.get("solution_draft"),
-        "escalation_required": ai_result.get("escalation_required", False),
+        "escalation_required": escalate,
         "confidence": ai_result.get("confidence"),
-        "metadata": ai_result.get("ticket_metadata")
+        "metadata": ai_result.get("ticket_metadata"),
+        "summary": ai_result.get("summary", req.message) # Return summary
     }
 
 @app.post("/tickets")
 async def create_ticket(req: CreateTicketRequest):
     print(f"DEBUG: 📩 New Ticket Request: {req.query} (Force: {req.force_create})")
     
-    # AI Analysis
-    ai_result = analyze_with_gemini(req.query)
+    # AI Analysis for categorization (if not provided/if needed)
+    # If the frontend passes a 'summary' as 'req.query', we use it.
+    # We still run analyze_with_gemini to get metadata categorization based on that summary/query.
+    ai_result = analyze_with_gemini(req.query, mode="ticket")
     conf = ai_result.get("confidence", "low")
     meta = ai_result.get("ticket_metadata", {})
     draft = ai_result.get("solution_draft", "")
@@ -338,9 +370,6 @@ async def create_ticket(req: CreateTicketRequest):
     # Prepare history
     ticket_history = []
     if req.history:
-        # Normalize history if needed, or just store as is
-        # Client sends: {role: 'user'|'ai', content: '...'}
-        # DB expects: {role: 'user'|'ai'|'admin', message: '...', time: '...'}
         for msg in req.history:
             ticket_history.append({
                 "role": msg.get("role"),
@@ -398,6 +427,37 @@ def kb_entry_exists(new_query: str) -> bool:
     except: pass
     return False
 
+def standardize_resolution(text: str) -> str:
+    """Uses Gemini to rewrite a response into a standardized KB resolution."""
+    if not text or not GOOGLE_API_KEY: return text
+    
+    try:
+        prompt = f"""Rewrite the following support response into a standardized, technical resolution for a Knowledge Base. 
+        Rules:
+        1. Remove pleasantries (Hi, Thanks, Sorry, 'I will...').
+        2. Use imperative or objective tone (e.g., 'Connect to VPN...' or 'Ticket #123 created for hardware replacement').
+        3. Keep it concise.
+        4. OUTPUT PLAIN TEXT ONLY. Do NOT use markdown formatting (no bold **, no italics *, no code blocks).
+        5. Do NOT include prefixes like "KB Resolution:" or "Resolution:". Start directly with the action.
+        
+        Input: "{text}"
+        """
+        
+        # Use the wrapped client if available, else gemini_client
+        c = client if 'client' in globals() else gemini_client
+        response = c.models.generate_content(
+            model="gemini-flash-latest",
+            contents=prompt,
+        )
+        
+        if hasattr(response, "text"):
+            return response.text.strip()
+        else:
+            return str(response).strip()
+    except Exception as e:
+        print(f"Standardization Error: {e}")
+        return text
+
 @app.post("/broadcast")
 async def broadcast_solution(req: BroadcastRequest):
     db = load_db()
@@ -432,14 +492,19 @@ async def broadcast_solution(req: BroadcastRequest):
             try:
                 with open(KB_CSV, 'a', newline='', encoding='utf-8') as f:
                     writer = csv.writer(f)
-                    category_display = target_category
-                    if target_subcategory and target_subcategory != "General":
-                        category_display = f"{target_category} - {target_subcategory}"
+                    
+                    # Standardize resolution
+                    std_resolution = standardize_resolution(req.final_answer)
+                    
+                    # Generate ID
+                    new_id = str(uuid.uuid4())[:8]
+
                     writer.writerow([
-                        category_display,
+                        new_id,
+                        target_category, # Only Major Category
+                        "", # Empty Issue column
                         target_ticket_query, 
-                        target_ticket_query, 
-                        req.final_answer, 
+                        std_resolution, 
                         f"{target_category};{target_subcategory or ''};Resolved"
                     ])
                     print(f"DEBUG: 📚 Added solution to Knowledge Base")
@@ -479,13 +544,20 @@ async def broadcast_all(req: BroadcastAllRequest):
              print(f"DEBUG: ⏭️ Skipping Batch KB update (Duplicate detected)")
         else:
             try:
+                # Standardize batch resolution
+                std_batch_res = standardize_resolution(req.final_answer)
+                
+                # Generate ID
+                new_id = str(uuid.uuid4())[:8]
+
                 with open(KB_CSV, 'a', newline='', encoding='utf-8') as f:
                     writer = csv.writer(f)
                     writer.writerow([
-                        start_cat,
+                        new_id,
+                        start_cat, # Major Category
+                        "", # Empty Issue
                         batch_query,
-                        "Multiple user reports",
-                        req.final_answer,
+                        std_batch_res,
                         f"{start_cat};BatchResolved"
                     ])
             except: pass
@@ -539,11 +611,139 @@ async def resolve_ticket_user(ticket_id: str):
     else:
         raise HTTPException(status_code=404, detail="Ticket not found")
 
-@app.get("/search_knowledge")
-async def search_knowledge(query: str):
-    # Minimal search implementation to avoid errors on frontend
-    # Full implementation can be restored if needed
-    return {"results": []}
+# --- Knowledge Base CRUD ---
+
+class KBEntry(BaseModel):
+    id: Optional[str] = None
+    category: str
+    issue: Optional[str] = "" # Optional/Deprecated
+    question: str
+    resolution: str
+    tags: Optional[str] = None
+
+@app.get("/knowledge-base")
+async def get_kb_entries():
+    """Returns all KB entries."""
+    if not KB_CSV.exists():
+        return []
+    
+    entries = []
+    try:
+        with open(KB_CSV, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            entries = list(reader)
+    except Exception as e:
+        print(f"Error reading KB: {e}")
+        return []
+    return entries
+
+@app.post("/knowledge-base")
+async def create_kb_entry(entry: KBEntry):
+    """Creates a new KB entry."""
+    new_id = str(uuid.uuid4())[:8]
+    entry.id = new_id
+    
+    # Standardize resolution if not already
+    entry.resolution = standardize_resolution(entry.resolution)
+    
+    fieldnames = ['ID', 'Category', 'Issue', 'Question', 'Resolution', 'Tags']
+    
+    try:
+        # Append to CSV
+        file_exists = KB_CSV.exists()
+        with open(KB_CSV, 'a', newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            if not file_exists:
+                writer.writeheader()
+            writer.writerow({
+                'ID': entry.id,
+                'Category': entry.category,
+                'Issue': "", # Deprecated/Empty
+                'Question': entry.question,
+                'Resolution': entry.resolution,
+                'Tags': entry.tags or ""
+            })
+        return {"status": "created", "entry": entry}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/knowledge-base/{entry_id}")
+async def update_kb_entry(entry_id: str, entry: KBEntry):
+    """Updates an existing KB entry."""
+    if not KB_CSV.exists():
+        raise HTTPException(status_code=404, detail="KB not found")
+        
+    updated = False
+    temp_file = KB_CSV.with_suffix('.tmp')
+    
+    try:
+        with open(KB_CSV, 'r', encoding='utf-8') as infile, \
+             open(temp_file, 'w', newline='', encoding='utf-8') as outfile:
+            
+            reader = csv.DictReader(infile)
+            fieldnames = reader.fieldnames
+            writer = csv.DictWriter(outfile, fieldnames=fieldnames)
+            writer.writeheader()
+            
+            for row in reader:
+                if row.get('ID') == entry_id:
+                    writer.writerow({
+                        'ID': entry_id,
+                        'Category': entry.category,
+                        'Issue': "", # Deprecated/Empty
+                        'Question': entry.question,
+                        'Resolution': entry.resolution, 
+                        'Tags': entry.tags or row.get('Tags', "")
+                    })
+                    updated = True
+                else:
+                    writer.writerow(row)
+        
+        if updated:
+            temp_file.replace(KB_CSV)
+            return {"status": "updated", "entry": entry}
+        else:
+            temp_file.unlink(missing_ok=True)
+            raise HTTPException(status_code=404, detail="Entry not found")
+            
+    except Exception as e:
+        if temp_file.exists(): temp_file.unlink()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/knowledge-base/{entry_id}")
+async def delete_kb_entry(entry_id: str):
+    """Deletes a KB entry."""
+    if not KB_CSV.exists():
+        raise HTTPException(status_code=404, detail="KB not found")
+        
+    deleted = False
+    temp_file = KB_CSV.with_suffix('.tmp')
+    
+    try:
+        with open(KB_CSV, 'r', encoding='utf-8') as infile, \
+             open(temp_file, 'w', newline='', encoding='utf-8') as outfile:
+            
+            reader = csv.DictReader(infile)
+            fieldnames = reader.fieldnames
+            writer = csv.DictWriter(outfile, fieldnames=fieldnames)
+            writer.writeheader()
+            
+            for row in reader:
+                if row.get('ID') == entry_id:
+                    deleted = True
+                    continue
+                writer.writerow(row)
+        
+        if deleted:
+            temp_file.replace(KB_CSV)
+            return {"status": "deleted"}
+        else:
+            temp_file.unlink(missing_ok=True)
+            raise HTTPException(status_code=404, detail="Entry not found")
+            
+    except Exception as e:
+        if temp_file.exists(): temp_file.unlink()
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn

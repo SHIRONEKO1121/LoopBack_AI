@@ -19,6 +19,58 @@
 *   **AI Model**: Google Gemini 1.5 Flash (`gemini-1.5-flash-latest` or `gemini-3-flash-preview` if configured)
 *   **Database**: JSON file (`tickets_db.json`) for tickets, CSV file for Knowledge Base.
 
+## System Architecture
+
+```mermaid
+graph TD
+    User([User]) <--> Frontend[React Frontend]
+    Frontend <--> API[FastAPI Backend]
+    
+    subgraph Backend Services
+        API <--> AI[Google Gemini AI]
+        API <--> KB[(Knowledge Base CSV)]
+        API <--> DB[(Tickets DB JSON)]
+    end
+    
+    Admin([Admin]) <--> Frontend
+```
+
+## Workflow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant B as Backend
+    participant AI as Gemini AI
+    participant K as Knowledge Base
+    participant A as Admin
+
+    U->>F: Asks Question
+    F->>B: Sends Query
+    B->>K: Search for existing solutions
+    K-->>B: Returns context
+    B->>AI: Analyze query + Context
+    AI-->>B: Returns Draft Response & Metadata
+    
+    alt Solution Found
+        B-->>F: Returns AI Solution
+        F-->>U: Displays Solution
+    else Issue Unresolved
+        B->>B: Creates Ticket (Status: Pending)
+        B-->>F: Returns Ticket Created
+        F-->>U: Notify Ticket Created
+    end
+    
+    opt Admin Resolution
+        A->>F: Reviews Ticket
+        A->>B: Submits Final Answer
+        B->>AI: Standardize Resolution
+        AI-->>B: Returns Cleaned Text
+        B->>K: Updates Knowledge Base
+    end
+```
+
 ## Setup Instructions
 
 ### Prerequisites

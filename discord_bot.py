@@ -141,42 +141,11 @@ async def on_message(message):
             await message.channel.send(f"⚠️ System Error: {str(e)}")
 
 # --- Background Task: Notify Users of Resolution ---
-@tasks.loop(seconds=10)
+@tasks.loop(seconds=5)
 async def check_resolved_tickets():
     """
-    Polls backend for resolved tickets and notifies Discord users.
-    NOTE: A real production app would use Webhooks or WebSocket events 
-    instead of polling, but this is simple and robust for now.
+    Polls backend for tickets requiring notification (Resolved or Awaiting Info).
     """
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"{API_URL}/tickets") as resp:
-                if resp.status == 200:
-                    tickets = await resp.json()
-                    
-                    # Look for tickets that are "Resolved" but maybe we haven't notified them?
-                    # Ideally, your backend should have a "notified": false flag.
-                    # For this demo, we will just check "Resolved" status.
-                    # To avoid spamming, we need a way to track what we've sent. 
-                    # We'll use a local set for this session.
-                    
-                    # See global 'notified_tickets' set below
-                    pass 
-                    
-                
-    except Exception as e:
-        print(f"Polling Error: {e}")
-
-# Track notified tickets in memory (resets on bot restart)
-notified_tickets = set()
-
-@check_resolved_tickets.before_loop
-async def before_polling():
-    await bot.wait_until_ready()
-
-# Overwrite the actual logic with tracking
-@tasks.loop(seconds=15)
-async def check_resolved_tickets():
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(f"{API_URL}/tickets") as resp:
@@ -186,46 +155,88 @@ async def check_resolved_tickets():
                     for t in tickets:
                         val_id = t.get("id")
                         status = t.get("status")
+                        notified = t.get("notified", True) # Default to True for old tickets/legacy stability
                         users = t.get("users", [])
                         
-                        # Check conditions: Resolved + Has Discord User + Not Notified
-                        if status == "Resolved" and val_id not in notified_tickets and users:
+                        # Only process if NOT notified
+                        if not notified and (status == "Resolved" or status == "Awaiting Info"):
                             
-                            discord_user_id = None
-                            # Try to find the numeric ID string
-                            for u in users:
-                                if u.isdigit(): 
-                                    discord_user_id = int(u)
-                                    break
+                            # Determine Message Content based on Status
+                            msg_content = ""
+                            if status == "Resolved":
+                                msg_content = f"**✅ Ticket Resolved: {val_id}**\n\n**Issue:** {t.get('query')}\n**Resolution:** {t.get('final_answer')}"
+                            elif status == "Awaiting Info":
+                                # Find the last admin question
+                                history = t.get("history", [])
+                                last_admin_msg = "Please provide more details."
+                                for h in reversed(history):
+                                    if h.get("role") == "admin":
+                                        last_admin_msg = h.get("message")
+                                        break
+                                msg_content = f"**❓ Admin Question: {val_id}**\n\n{last_admin_msg}\n\n*Reply here to answer.*"
                             
-                            if discord_user_id:
-                                user = bot.get_user(discord_user_id)
-                                if not user:
-                                    try:
-                                        user = await bot.fetch_user(discord_user_id)
-                                    except: pass
+                            if not msg_content:
+                                continue
+
+                            sent = False
+                            
+                            # 1. Try Thread Notification First
+                            thread_id = t.get("thread_id")
+                            if thread_id:
+                                try:
+                                    thread = bot.get_channel(int(thread_id)) or await bot.fetch_channel(int(thread_id))
+                                    if thread:
+                                        await thread.send(msg_content)
+                                        sent = True
+                                        print(f"DTO sent to thread {thread_id} for {val_id}")
+                                except Exception as e:
+                                    print(f"Thread notification failed: {e}")
+
+                            # 2. Fallback to DM if not sent to thread
+                            if not sent and users:
+                                discord_user_id = None
+                                # Try to find the numeric ID string
+                                for u in users:
+                                    if u.isdigit(): 
+                                        discord_user_id = int(u)
+                                        break
                                 
-                                if user:
-                                    # Send Notification
-                                    embed = discord.Embed(title="✅ Ticket Resolved", color=discord.Color.green())
-                                    embed.add_field(name="Ticket ID", value=val_id, inline=True)
-                                    embed.add_field(name="Issue", value=t.get("query"), inline=False)
-                                    embed.add_field(name="Resolution", value=t.get("final_answer"), inline=False)
+                                if discord_user_id:
+                                    user = bot.get_user(discord_user_id)
+                                    if not user:
+                                        try:
+                                            user = await bot.fetch_user(discord_user_id)
+                                        except: pass
                                     
-                                    try:
-                                        await user.send(embed=embed)
-                                        print(f"DTO sent to {user.name} for {val_id}")
-                                    except:
-                                        # Fallback to channel if DM fails
-                                        if DISCORD_CHANNEL_ID:
-                                            ch = bot.get_channel(int(DISCORD_CHANNEL_ID))
-                                            if ch: await ch.send(content=f"<@{discord_user_id}>", embed=embed)
-                                
-                                # Mark as notified
-                                notified_tickets.add(val_id)
+                                    if user:
+                                        try:
+                                            await user.send(msg_content)
+                                            sent = True
+                                            print(f"DTO sent to DM {user.name} for {val_id}")
+                                        except:
+                                            # Fallback to channel if DM fails
+                                            if DISCORD_CHANNEL_ID:
+                                                ch = bot.get_channel(int(DISCORD_CHANNEL_ID))
+                                                if ch: await ch.send(content=f"<@{discord_user_id}> \n{msg_content}")
+                                                sent = True
+                            
+                            # 3. ACK Notification to Backend
+                            if sent:
+                                try:
+                                    async with session.post(f"{API_URL}/tickets/{val_id}/ack_notification") as ack_resp:
+                                        if ack_resp.status == 200:
+                                            print(f"✅ Acked notification for {val_id}")
+                                        else:
+                                            print(f"❌ Failed to ack notification for {val_id}: {ack_resp.status}")
+                                except Exception as ex:
+                                    print(f"Exception acking notification: {ex}")
 
     except Exception as e:
         print(f"Polling Error: {e}")
+
+@check_resolved_tickets.before_loop
+async def before_polling():
+    await bot.wait_until_ready()
 
 # 3. Run the bot
 if DISCORD_BOT_TOKEN:

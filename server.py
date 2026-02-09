@@ -70,6 +70,8 @@ class Ticket(BaseModel):
     group_id: Optional[str] = None
     history: List[dict] = []
     final_answer: Optional[str] = None
+    thread_id: Optional[int] = None
+    notified: bool = True # Track if the user has been notified of the latest status change
 
 class CreateTicketRequest(BaseModel):
     query: str
@@ -294,6 +296,17 @@ Return JSON:
 async def get_tickets():
     return load_db()
 
+@app.post("/tickets/{ticket_id}/ack_notification")
+async def ack_notification(ticket_id: str):
+    """Called by the bot to confirm it has notified the user."""
+    db = load_db()
+    for t in db:
+        if t["id"] == ticket_id:
+            t["notified"] = True
+            save_db(db)
+            return {"status": "acked"}
+    raise HTTPException(status_code=404, detail="Ticket not found")
+
 @app.get("/knowledge-base")
 async def get_knowledge_base():
     """Returns the full Knowledge Base as JSON."""
@@ -419,7 +432,8 @@ async def create_ticket(req: CreateTicketRequest):
         "group_id": new_id,
         "users": req.users,
         "history": ticket_history,
-        "thread_id": req.thread_id
+        "thread_id": req.thread_id,
+        "notified": True # Created by bot, so user knows.
     }
     
     db.append(new_ticket)
@@ -534,6 +548,12 @@ async def broadcast_solution(req: BroadcastRequest):
         if t["id"] == req.ticket_id:
             t["status"] = "Resolved"
             t["final_answer"] = req.final_answer
+            t["notified"] = False  # Trigger bot notification
+            t.setdefault("history", []).append({
+                "role": "model",
+                "message": f"**Resolution:** {req.final_answer}",
+                "time": time.strftime("%H:%M")
+            })
             count += 1
             
     save_db(db)
@@ -585,6 +605,12 @@ async def broadcast_all(req: BroadcastAllRequest):
             if update:
                 t["status"] = "Resolved"
                 t["final_answer"] = req.final_answer
+                t["notified"] = False # Trigger notification
+                t.setdefault("history", []).append({
+                    "role": "model",
+                    "message": f"**Resolution Broadcast:** {req.final_answer}",
+                    "time": time.strftime("%H:%M")
+                })
                 count += 1
                 resolved_ids.append(t["id"])
     
@@ -632,6 +658,7 @@ async def ask_user(ticket_id: str, req: AskRequest):
     for t in db:
         if t["id"] == ticket_id:
             t["status"] = "Awaiting Info"
+            t["notified"] = False  # Trigger notification
             t["history"].append({
                 "role": "admin",
                 "message": req.question,

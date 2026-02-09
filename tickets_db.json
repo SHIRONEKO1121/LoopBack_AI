@@ -409,15 +409,21 @@
         "category": "Network",
         "subcategory": "Wi-Fi Performance",
         "ai_draft": "Thank you for reporting this issue. To help me troubleshoot the connectivity problems, could you please specify which conference room you are currently located in? Also, please confirm if you are connected to the 'ACME-Staff' network. As an initial step, please try disconnecting and reconnecting to the Wi-Fi. If the issue persists after these steps, I will escalate this ticket to our network team to investigate the access point performance in that specific location.",
-        "status": "Pending",
+        "status": "Resolved",
         "group_id": "TKT-1014",
         "history": [
             {
                 "role": "user",
                 "message": "The wifi in the conference room is very spotty.",
                 "time": "18:24"
+            },
+            {
+                "role": "model",
+                "message": "**Resolution Broadcast:** The company system was down. Please try logging in again. I am sorry for the issues and thank you for your patience.",
+                "time": "12:47"
             }
-        ]
+        ],
+        "final_answer": "The company system was down. Please try logging in again. I am sorry for the issues and thank you for your patience."
     },
     {
         "id": "TKT-1015",
@@ -426,15 +432,21 @@
         "category": "Network",
         "subcategory": "Folder Access",
         "ai_draft": "Hello, I understand you are having trouble accessing the shared Marketing folder. To help me investigate, could you please confirm the exact network path or name of the folder you are attempting to access? I will check your group permissions against the requirements for that drive. If you are working remotely, please ensure you are connected to the company VPN.",
-        "status": "Pending",
+        "status": "Resolved",
         "group_id": "TKT-1015",
         "history": [
             {
                 "role": "user",
                 "message": "I can't access the shared drive folder for Marketing.",
                 "time": "18:24"
+            },
+            {
+                "role": "model",
+                "message": "**Resolution Broadcast:** The company system was down. Please try logging in again. I am sorry for the issues and thank you for your patience.",
+                "time": "12:47"
             }
-        ]
+        ],
+        "final_answer": "The company system was down. Please try logging in again. I am sorry for the issues and thank you for your patience."
     },
     {
         "id": "TKT-1016",
@@ -551,7 +563,7 @@
         "subcategory": "Login Error",
         "ai_draft": "I apologize that you are still unable to log in. Receiving an 'account not valid' message usually means your account is either locked, disabled, or requires a password synchronization. To resolve this immediately, I need to verify the status of your account. Could you please provide your corporate username so I can check your account in Active Directory and proceed with a verification or password reset?",
         "admin_draft": "I apologize that you are still unable to log in. Receiving an 'account not valid' message usually means your account is either locked, disabled, or requires a password synchronization. To resolve this immediately, I need to verify the status of your account. Could you please provide your corporate username so I can check your account in Active Directory and proceed with a verification or password reset?",
-        "status": "Pending",
+        "status": "Resolved",
         "group_id": "TKT-1024",
         "users": [
             "596235052749422592",
@@ -567,8 +579,14 @@
                 "role": "user",
                 "message": "I still cannot log in. It said my account is not valid",
                 "time": "11:40"
+            },
+            {
+                "role": "model",
+                "message": "**Resolution:** The company system was down. Please try logging in again. I am sorry for the issues and thank you for your patience.",
+                "time": "12:47"
             }
-        ]
+        ],
+        "final_answer": "The company system was down. Please try logging in again. I am sorry for the issues and thank you for your patience."
     },
     {
         "id": "TKT-1025",
@@ -609,6 +627,11 @@
                 "role": "admin",
                 "message": "Could you please provide more details about this issue?",
                 "time": "11:42"
+            },
+            {
+                "role": "admin",
+                "message": "Could you please provide more details about this issue?",
+                "time": "12:47"
             }
         ]
     },
@@ -620,7 +643,7 @@
         "subcategory": "Login Failure",
         "ai_draft": "I understand you are experiencing a login issue with the company portal, where your account is being reported as invalid. This suggests an authentication problem, possibly due to an account lock, incorrect credentials, or an issue with SSO synchronization. I will immediately check your account status in Active Directory and review the authentication logs for the company portal to pinpoint the exact error. Please provide your username so I can start the investigation.",
         "admin_draft": "I understand you are experiencing a login issue with the company portal, where your account is being reported as invalid. This suggests an authentication problem, possibly due to an account lock, incorrect credentials, or an issue with SSO synchronization. I will immediately check your account status in Active Directory and review the authentication logs for the company portal to pinpoint the exact error. Please provide your username so I can start the investigation.",
-        "status": "Pending",
+        "status": "Resolved",
         "group_id": "TKT-1026",
         "users": [
             "596235052749422592",
@@ -791,8 +814,14 @@
                 "role": "user",
                 "message": "I cannot log into my account on the company portal\nIt said my account is not valid as well",
                 "time": "11:43"
+            },
+            {
+                "role": "model",
+                "message": "**Resolution Broadcast:** The company system was down. Please try logging in again. I am sorry for the issues and thank you for your patience.",
+                "time": "12:47"
             }
-        ]
+        ],
+        "final_answer": "The company system was down. Please try logging in again. I am sorry for the issues and thank you for your patience."
     },
     {
         "id": "TKT-1029",
@@ -802,7 +831,7 @@
         "subcategory": "Login",
         "ai_draft": "I understand you're having trouble logging into the company portal and that your account is being flagged as invalid. Please try resetting your password using the 'Forgot Password' link on the portal's login page. If that doesn't resolve the issue, I'll need to escalate this to our account management team to investigate your credentials.",
         "admin_draft": "I understand you're having trouble logging into the company portal and that your account is being flagged as invalid. Please try resetting your password using the 'Forgot Password' link on the portal's login page. If that doesn't resolve the issue, I'll need to escalate this to our account management team to investigate your credentials.",
-        "status": "Pending",
+        "status": "Resolved",
         "group_id": "TKT-1029",
         "users": [
             "596235052749422592",
@@ -988,6 +1017,293 @@
                 "role": "user",
                 "message": "I need help with the system",
                 "time": "11:58"
+            },
+            {
+                "role": "model",
+                "message": "**Resolution Broadcast:** The company system was down. Please try logging in again. I am sorry for the issues and thank you for your patience.",
+                "time": "12:47"
+            }
+        ],
+        "thread_id": null,
+        "final_answer": "The company system was down. Please try logging in again. I am sorry for the issues and thank you for your patience."
+    },
+    {
+        "id": "TKT-1030",
+        "title": "VPN Issue Escalation",
+        "query": "User requires assistance with VPN issues and wishes to escalate.",
+        "category": "Network",
+        "subcategory": "VPN",
+        "ai_draft": "I understand you're encountering issues with your VPN connection and would like to speak with a human representative for further assistance. I have created a ticket for you to be connected with a support agent who can help troubleshoot this further.",
+        "admin_draft": "I understand you're encountering issues with your VPN connection and would like to speak with a human representative for further assistance. I have created a ticket for you to be connected with a support agent who can help troubleshoot this further.",
+        "status": "Resolved",
+        "group_id": "TKT-1030",
+        "users": [
+            "596235052749422592",
+            "cclemon1514"
+        ],
+        "history": [
+            {
+                "role": "model",
+                "message": "**I understand you're having VPN issues. To help me diagnose this, could you please provide more details? For example, are you unable to connect, is the connection slow, or are you experiencing frequent disconnections? Also, have you tried any troubleshooting steps already, like restarting your VPN client or your computer?\n\n*Is this helpful? If not, reply with 'ticket' to talk to a human.*",
+                "time": "12:39"
+            },
+            {
+                "role": "user",
+                "message": "ticket",
+                "time": "12:39"
+            },
+            {
+                "role": "admin",
+                "message": "Could you please provide more details about this issue?",
+                "time": "12:39"
+            },
+            {
+                "role": "model",
+                "message": "**Resolution:** I understand you're encountering issues with your VPN connection and would like to speak with a human representative for further assistance. I have created a ticket for you to be connected with a support agent who can help troubleshoot this further.",
+                "time": "12:41"
+            }
+        ],
+        "thread_id": null,
+        "final_answer": "I understand you're encountering issues with your VPN connection and would like to speak with a human representative for further assistance. I have created a ticket for you to be connected with a support agent who can help troubleshoot this further."
+    },
+    {
+        "id": "TKT-1031",
+        "title": "Error",
+        "query": "<@1470084842657026140> i am hungry\uff0ctell admin give me some food",
+        "category": "Others",
+        "subcategory": "System Error",
+        "ai_draft": "System Error: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}",
+        "admin_draft": "System Error: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}",
+        "status": "Resolved",
+        "group_id": "TKT-1031",
+        "users": [
+            "729672521162424370",
+            "ssshironekooo"
+        ],
+        "history": [
+            {
+                "role": "user",
+                "message": "<@1470084842657026140>",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "<@1470084842657026140> ping",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "!ping",
+                "time": "12:53"
+            },
+            {
+                "role": "model",
+                "message": "Pong!",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "test",
+                "time": "12:53"
+            },
+            {
+                "role": "model",
+                "message": "Received message: test",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "Testing",
+                "time": "12:53"
+            },
+            {
+                "role": "model",
+                "message": "Received message: Testing",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "ticket",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "How do I turn on the computer?",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "Thanks!",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "Tets",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "Testing",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "testing",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "testing",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "test",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "how to set up vpn",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "<@1470084842657026140> test",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "<@596235052749422592> Hello",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "how to start my computer",
+                "time": "12:53"
+            },
+            {
+                "role": "model",
+                "message": "\u26a0\ufe0f System Error: 400 Bad Request (error code: 50035): Invalid Form Body\nIn embeds.0.description: Must be 4096 or fewer in length.",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "how to start my computer",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "Help me with setting up python on my computer",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "hi",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "hi",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "hi",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "the server is on so you can try it now",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "I dont want to study",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "<@1470084842657026140>  I don\u2019t want to study",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "<@1470084842657026140> I dont want to work",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "<@1470084842657026140> I want to sleep",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "How do I log onto the company portal",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "I cannot log into my account on the company portal\nIt said my account is not valid as well",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "I need help with the system",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "I need help with the system",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "I need help with the system",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "<@1470084842657026140> I have vpn issues",
+                "time": "12:53"
+            },
+            {
+                "role": "user",
+                "message": "<@1470084842657026140> i am hungry\uff0ctell admin give me some food",
+                "time": "12:53"
+            },
+            {
+                "role": "model",
+                "message": "**Resolution:** Please talk to the catering team instead of the IT Support Team. Thank you.",
+                "time": "13:03"
+            }
+        ],
+        "thread_id": null,
+        "final_answer": "Please talk to the catering team instead of the IT Support Team. Thank you."
+    },
+    {
+        "id": "TKT-1032",
+        "title": "User Request for Food",
+        "query": "User is requesting food and rejecting IT support's redirection.",
+        "category": "Others",
+        "subcategory": "User Request",
+        "ai_draft": "I understand you're still looking for food. However, IT support is unable to assist with meal requests. Please reach out to the catering department for assistance with your food needs.",
+        "admin_draft": "I understand you're still looking for food. However, IT support is unable to assist with meal requests. Please reach out to the catering department for assistance with your food needs.",
+        "status": "Pending",
+        "group_id": "TKT-1032",
+        "users": [
+            "729672521162424370",
+            "ssshironekooo"
+        ],
+        "history": [
+            {
+                "role": "model",
+                "message": "**\u2705 Ticket Resolved: TKT-1031**\n\n**Issue:** <@1470084842657026140> i am hungry\uff0ctell admin give me some food\n**Resolution:** Please talk to the catering team instead of the IT Support Team. Thank you.",
+                "time": "13:04"
+            },
+            {
+                "role": "user",
+                "message": "Noooooooo",
+                "time": "13:04"
             }
         ],
         "thread_id": null

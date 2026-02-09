@@ -11,6 +11,9 @@
     *   **Duplicate Prevention**: Automatically blocks duplicate or highly similar questions from being added to the KB to keep it clean.
 *   **Self-Learning**: When an admin marks a ticket as "Resolved" with a quality answer, the system automatically adds that solution to the Knowledge Base for future use.
 *   **Admin Dashboard**: View and manage tickets, see AI-drafted solutions, and monitor KB updates.
+*   **Multi-Channel Support**:
+    *   **Discord Bot**: Users can open tickets directly from Discord. The bot creates dedicated **threads** (private/public) for each issue to keep channels clean.
+    *   **Web Portal**: A responsive React application for tracking and managing tickets.   
 
 ## Technology Stack
 
@@ -18,13 +21,16 @@
 *   **Frontend**: React (Vite + Tailwind CSS + Lucide Icons)
 *   **AI Model**: Google Gemini 1.5 Flash (`gemini-1.5-flash-latest` or `gemini-3-flash-preview` if configured)
 *   **Database**: JSON file (`tickets_db.json`) for tickets, CSV file for Knowledge Base.
+*   **Integration**: Discord.py (Bot)
 
 ## System Architecture
 
 ```mermaid
 graph TD
     User([User]) <--> Frontend[React Frontend]
+    User([User]) <--> Discord[Discord Bot]
     Frontend <--> API[FastAPI Backend]
+    Discord <--> API
     
     subgraph Backend Services
         API <--> AI[Google Gemini AI]
@@ -47,7 +53,9 @@ sequenceDiagram
     participant A as Admin
 
     U->>F: Asks Question
+    U->>Discord: Asks Question
     F->>B: Sends Query
+    Discord ->> B: Sends Query
     B->>K: Search for existing solutions
     K-->>B: Returns context
     B->>AI: Analyze query + Context
@@ -89,14 +97,24 @@ sequenceDiagram
     ```
 3.  Set up your environment variables:
     *   Create a `.env` file in the root directory.
-    *   add your API key: `GOOGLE_API_KEY=your_api_key_here`
+    *   `GOOGLE_API_KEY=your_api_key_here`
+    *   `DISCORD_BOT_TOKEN=<bot-token>`
+    *   `DISCORD_GUILD_ID=<server-id>` (The server ID where you want the bot to operate)
+    *   `DISCORD_CHANNEL_ID=<channel-id>` (The channel ID where you want the bot to operate)
+
+    *   If you wish to use Langsmith services, add 
+    `LANGSMITH_TRACING=true`
+    `LANGSMITH_ENDPOINT=https://api.smith.langchain.com`
+    `LANGSMITH_API_KEY=<your-api-key>`
+    `LANGSMITH_PROJECT=<your-project-name>`
+    
+
     *   If you wish to use Langsmith services, add 
     `LANGSMITH_TRACING=true`
     `LANGSMITH_ENDPOINT=https://api.smith.langchain.com`
     `LANGSMITH_API_KEY=<your-api-key>`
     `LANGSMITH_PROJECT=<your-project-name>`
     *   Else, simply add the line `LANGSMITH_TRACING=true`
-
 
 4.  Start the backend server:
     ```bash
@@ -118,6 +136,10 @@ sequenceDiagram
     npm run dev
     ```
     The application will be available at `http://localhost:5173`.
+4.  Run the discord bot
+    ```bash
+    python3 discord_bot.py
+    ```
 
 ## Usage
 
@@ -129,6 +151,7 @@ sequenceDiagram
 ## Project Structure
 
 *   `server.py`: Main backend logic (App, API endpoints, AI integration).
+*   `discord_bot.py`: Discord bot logic.
 *   `tickets_db.json`: Stores all ticket data.
 *   `knowledge_base/`: Contains the CSV database used for RAG (Retrieval-Augmented Generation).
 *   `frontend/`: React source code.

@@ -19,7 +19,7 @@
 
 *   **Backend**: Python (FastAPI)
 *   **Frontend**: React (Vite + Tailwind CSS + Lucide Icons)
-*   **AI Model**: Google Gemini 1.5 Flash (`gemini-1.5-flash-latest` or `gemini-3-flash-preview` if configured)
+*   **AI Model**: Google Gemini-3-Pro
 *   **Database**: JSON file (`tickets_db.json`) for tickets, CSV file for Knowledge Base.
 *   **Integration**: Discord.py (Bot)
 
